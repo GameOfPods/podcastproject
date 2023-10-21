@@ -1,0 +1,17 @@
+@import url('./main-layout.css');
+@import url('./views/podcast-list-view.css');
+@import url('./views/podcast-view.css');
+@import url('./views/wiki-view.css');    html {
+      --lumo-border-radius-s: 1px;
+      --lumo-border-radius-m: 2px;
+      --lumo-border-radius-l: 4px;
+
+    }
+
+    [theme~="dark"] {
+      --lumo-primary-color: hsl(44, 79%, 44%);
+      --lumo-primary-color-50pct: hsla(44, 79%, 44%, 0.5);
+      --lumo-primary-color-10pct: hsla(44, 79%, 44%, 0.1);
+      --lumo-primary-text-color: hsl(44, 79%, 44%);
+
+    }
