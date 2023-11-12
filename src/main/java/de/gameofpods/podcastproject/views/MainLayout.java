@@ -1,8 +1,13 @@
 package de.gameofpods.podcastproject.views;
 
+import com.vaadin.flow.component.AbstractField;
 import com.vaadin.flow.component.Component;
+import com.vaadin.flow.component.HasValue;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.avatar.Avatar;
+import com.vaadin.flow.component.charts.model.Lang;
+import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
 import com.vaadin.flow.component.html.Anchor;
 import com.vaadin.flow.component.html.Div;
@@ -14,8 +19,10 @@ import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.html.UnorderedList;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
+import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
 import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
@@ -32,7 +39,9 @@ import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
 import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
 import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
 import com.vaadin.flow.theme.lumo.LumoUtility.Width;
+import de.gameofpods.podcastproject.cookiemanagement.CookieManager;
 import de.gameofpods.podcastproject.data.User;
+import de.gameofpods.podcastproject.i18n.LanguageManager;
 import de.gameofpods.podcastproject.security.AuthenticatedUser;
 import de.gameofpods.podcastproject.views.about.AboutView;
 import de.gameofpods.podcastproject.views.management.ManagementView;
@@ -40,7 +49,11 @@ import de.gameofpods.podcastproject.views.podcast.PodcastView;
 import de.gameofpods.podcastproject.views.podcastlist.PodcastListView;
 import de.gameofpods.podcastproject.views.wiki.WikiView;
 import java.io.ByteArrayInputStream;
-import java.util.Optional;
+import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
+
+import org.apache.commons.lang3.ObjectUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
 /**
@@ -97,11 +110,34 @@ public class MainLayout extends AppLayout {
         Div layout = new Div();
         layout.addClassNames(Display.FLEX, AlignItems.CENTER, Padding.Horizontal.LARGE);
 
+        Optional<User> maybeUser = authenticatedUser.get();
+        var potLocales = LanguageManager.languages();
+        var userLocale = LanguageManager.matchLocaleToExisting(
+                LanguageManager.getUserLocale(maybeUser.orElse(null)),
+                potLocales
+        );
+
+        var languageSelector = new Select<Locale>();
+        languageSelector.setLabel("Languages");
+        languageSelector.setItems(potLocales);
+        languageSelector.setValue(userLocale);
+        languageSelector.setItemLabelGenerator(l -> LanguageManager.localeToEmoji(l) + " " + l.getDisplayName(userLocale));
+        languageSelector.addValueChangeListener((HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<Select<Locale>, Locale>>) selectLocaleComponentValueChangeEvent -> {
+            var l = selectLocaleComponentValueChangeEvent.getValue();
+            if (l == null)
+                return;
+            LanguageManager.setUserLocale(maybeUser.orElse(null), l);
+            try {
+                UI.getCurrent().getPage().reload();
+            }catch (NullPointerException ignored){
+            }
+        });
+
+
         H1 appName = new H1("PodcastProject");
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
-        layout.add(appName);
+        layout.add(appName, languageSelector);
 
-        Optional<User> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {
             User user = maybeUser.get();
 
