@@ -1,60 +1,30 @@
 package de.gameofpods.podcastproject.views;
 
-import com.vaadin.flow.component.AbstractField;
-import com.vaadin.flow.component.Component;
-import com.vaadin.flow.component.HasValue;
-import com.vaadin.flow.component.UI;
+import com.vaadin.flow.component.*;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.avatar.Avatar;
-import com.vaadin.flow.component.charts.model.Lang;
-import com.vaadin.flow.component.combobox.ComboBox;
 import com.vaadin.flow.component.contextmenu.MenuItem;
-import com.vaadin.flow.component.html.Anchor;
-import com.vaadin.flow.component.html.Div;
-import com.vaadin.flow.component.html.H1;
-import com.vaadin.flow.component.html.Header;
-import com.vaadin.flow.component.html.ListItem;
-import com.vaadin.flow.component.html.Nav;
-import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.html.UnorderedList;
+import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.menubar.MenuBar;
 import com.vaadin.flow.component.select.Select;
 import com.vaadin.flow.router.RouterLink;
 import com.vaadin.flow.server.StreamResource;
-import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.server.auth.AccessAnnotationChecker;
-import com.vaadin.flow.theme.lumo.LumoUtility.AlignItems;
-import com.vaadin.flow.theme.lumo.LumoUtility.BoxSizing;
-import com.vaadin.flow.theme.lumo.LumoUtility.Display;
-import com.vaadin.flow.theme.lumo.LumoUtility.FlexDirection;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontSize;
-import com.vaadin.flow.theme.lumo.LumoUtility.FontWeight;
-import com.vaadin.flow.theme.lumo.LumoUtility.Gap;
-import com.vaadin.flow.theme.lumo.LumoUtility.Height;
-import com.vaadin.flow.theme.lumo.LumoUtility.ListStyleType;
-import com.vaadin.flow.theme.lumo.LumoUtility.Margin;
-import com.vaadin.flow.theme.lumo.LumoUtility.Overflow;
-import com.vaadin.flow.theme.lumo.LumoUtility.Padding;
-import com.vaadin.flow.theme.lumo.LumoUtility.TextColor;
-import com.vaadin.flow.theme.lumo.LumoUtility.Whitespace;
-import com.vaadin.flow.theme.lumo.LumoUtility.Width;
-import de.gameofpods.podcastproject.cookiemanagement.CookieManager;
+import com.vaadin.flow.theme.lumo.LumoUtility.*;
+import de.gameofpods.podcastproject.config.Config;
 import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.i18n.LanguageManager;
 import de.gameofpods.podcastproject.security.AuthenticatedUser;
 import de.gameofpods.podcastproject.views.about.AboutView;
 import de.gameofpods.podcastproject.views.management.ManagementView;
 import de.gameofpods.podcastproject.views.podcast.PodcastView;
-import de.gameofpods.podcastproject.views.podcastlist.PodcastListView;
 import de.gameofpods.podcastproject.views.wiki.WikiView;
-import java.io.ByteArrayInputStream;
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
-
-import org.apache.commons.lang3.ObjectUtils;
 import org.vaadin.lineawesome.LineAwesomeIcon;
+
+import java.io.ByteArrayInputStream;
+import java.util.Locale;
+import java.util.Optional;
 
 /**
  * The main view is a top-level placeholder for other views.
@@ -93,14 +63,14 @@ public class MainLayout extends AppLayout {
 
     }
 
-    private AuthenticatedUser authenticatedUser;
-    private AccessAnnotationChecker accessChecker;
+    private final AuthenticatedUser authenticatedUser;
+    private final AccessAnnotationChecker accessChecker;
 
     public MainLayout(AuthenticatedUser authenticatedUser, AccessAnnotationChecker accessChecker) {
         this.authenticatedUser = authenticatedUser;
         this.accessChecker = accessChecker;
 
-        addToNavbar(createHeaderContent());
+        addToNavbar(true, createHeaderContent());
     }
 
     private Component createHeaderContent() {
@@ -118,10 +88,11 @@ public class MainLayout extends AppLayout {
         );
 
         var languageSelector = new Select<Locale>();
-        languageSelector.setLabel("Languages");
+        languageSelector.setWidth(70, Unit.PIXELS);
+        // languageSelector.setLabel("Languages");
         languageSelector.setItems(potLocales);
         languageSelector.setValue(userLocale);
-        languageSelector.setItemLabelGenerator(l -> LanguageManager.localeToEmoji(l) + " " + l.getDisplayName(userLocale));
+        languageSelector.setItemLabelGenerator(l -> LanguageManager.localeToEmoji(l));
         languageSelector.addValueChangeListener((HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<Select<Locale>, Locale>>) selectLocaleComponentValueChangeEvent -> {
             var l = selectLocaleComponentValueChangeEvent.getValue();
             if (l == null)
@@ -134,7 +105,7 @@ public class MainLayout extends AppLayout {
         });
 
 
-        H1 appName = new H1("PodcastProject");
+        H1 appName = new H1(Config.getConfig("application").get("name").toString());
         appName.addClassNames(Margin.Vertical.MEDIUM, Margin.End.AUTO, FontSize.LARGE);
         layout.add(appName, languageSelector);
 
@@ -192,8 +163,6 @@ public class MainLayout extends AppLayout {
     private MenuItemInfo[] createMenuItems() {
         return new MenuItemInfo[]{ //
                 new MenuItemInfo("About", LineAwesomeIcon.GLOBE_SOLID.create(), AboutView.class), //
-
-                new MenuItemInfo("Podcast List", LineAwesomeIcon.HEADPHONES_SOLID.create(), PodcastListView.class), //
 
                 new MenuItemInfo("Podcast", LineAwesomeIcon.HEADPHONES_SOLID.create(), PodcastView.class), //
 

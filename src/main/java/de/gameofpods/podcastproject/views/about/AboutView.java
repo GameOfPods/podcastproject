@@ -13,12 +13,13 @@ import de.gameofpods.podcastproject.views.MainLayout;
 
 @PageTitle("About")
 @Route(value = "about", layout = MainLayout.class)
+@RouteAlias(value = "/", layout = MainLayout.class)
 @RouteAlias(value = "", layout = MainLayout.class)
 @AnonymousAllowed
 public class AboutView extends HorizontalLayout {
 
-    private TextField name;
-    private Button sayHello;
+    private final TextField name;
+    private final Button sayHello;
 
     public AboutView() {
         name = new TextField("Your name");

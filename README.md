@@ -1,7 +1,7 @@
 # PodcastProject
 
-This project can be used as a starting point to create your own Vaadin application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+This application should be used for an easy to setup all in one podcast website including additions like
+a wiki, advent calendars, different podcasts (feeds, specials, etc.)
 
 ## Running the application
 
@@ -10,36 +10,81 @@ type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
 http://localhost:8080 in your browser.
 
 You can also import the project to your IDE of choice as you would with any
-Maven project. Read more on [how to import Vaadin projects to different IDEs](https://vaadin.com/docs/latest/guide/step-by-step/importing) (Eclipse, IntelliJ IDEA, NetBeans, and VS Code).
+Maven project. Read more
+on [how to import Vaadin projects to different IDEs](https://vaadin.com/docs/latest/guide/step-by-step/importing) (
+Eclipse, IntelliJ IDEA, NetBeans, and VS Code).
 
-## Deploying to Production
+## Settings
 
-To create a production build, call `mvnw clean package -Pproduction` (Windows),
-or `./mvnw clean package -Pproduction` (Mac & Linux).
-This will build a JAR file with all the dependencies and front-end resources,
-ready to be deployed. The file can be found in the `target` folder after the build completes.
+### Environment Variables
 
-Once the JAR file is built, you can run it using
-`java -jar target/my-app-1.0-SNAPSHOT.jar`
+This application uses environment variables for basic settings.
 
-## Project structure
+| Environment Variable   | Default | Required | Description                                                                  |
+|------------------------|---------|----------|------------------------------------------------------------------------------|
+| PORT                   | 8080    | no       | Sets the port the application runs on                                        |
+| PODCAST_PROJECT_CONFIG |         | yes      | Sets the path to the folder containing the [settings files](#settings-files) |
+| DB_URL                 |         | yes      | Sets the jdbc url for the database connection used for user management, etc  |
+| DB_USERNAME            | ""      | no       | Sets the username used for database connection                               |
+| DB_PASSWORD            | ""      | no       | Sets the password used for database connection                               |
 
-- `MainLayout.java` in `src/main/java` contains the navigation setup (i.e., the
-  side/top bar and the main menu). This setup uses
-  [App Layout](https://vaadin.com/docs/components/app-layout).
-- `views` package in `src/main/java` contains the server-side Java views of your application.
-- `views` folder in `frontend/` contains the client-side JavaScript views of your application.
-- `themes` folder in `frontend/` contains the custom CSS styles.
+## Settings files
 
-## Useful links
+The application loads all `.json`-files in the provided settings folder as settings, where the name is used as the key,
+if you want to access a custom settings-file while modifying or extending the application.
 
-- Read the documentation at [vaadin.com/docs](https://vaadin.com/docs).
-- Follow the tutorial at [vaadin.com/docs/latest/tutorial/overview](https://vaadin.com/docs/latest/tutorial/overview).
-- Create new projects at [start.vaadin.com](https://start.vaadin.com/).
-- Search UI components and their usage examples at [vaadin.com/docs/latest/components](https://vaadin.com/docs/latest/components).
-- View use case applications that demonstrate Vaadin capabilities at [vaadin.com/examples-and-demos](https://vaadin.com/examples-and-demos).
-- Build any UI without custom CSS by discovering Vaadin's set of [CSS utility classes](https://vaadin.com/docs/styling/lumo/utility-classes). 
-- Find a collection of solutions to common use cases at [cookbook.vaadin.com](https://cookbook.vaadin.com/).
-- Find add-ons at [vaadin.com/directory](https://vaadin.com/directory).
-- Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/vaadin) or join our [Discord channel](https://discord.gg/MYFq5RTbBn).
-- Report issues, create pull requests in [GitHub](https://github.com/vaadin).
+### Expected configurations
+
+`application.json`
+
+``` json
+{
+  "name": "Name of your porcast project"
+}
+```
+
+`podcasts.json`
+
+``` json
+{
+  "perma-key-of-your-podcast": {
+    "url": "https://example.podcast.com/rss (Required)",
+    "clients": {
+      "key-for-service-1": {
+        "key": "value (See below)"
+      },
+      "key-for-service-2": {
+      }
+    }
+  }
+}
+```
+
+#### Supported services to follow podcast
+
+following are the available services you can set so your podcast can be followed with their respective data you
+have to provide for the element to work
+
+| Service | Key | Default | Required | Description                                                     |
+|---------|-----|---------|----------|-----------------------------------------------------------------|
+| spotify | id  |         | yes      | ID of your spotify podcast (https://open.spotify.com/show/<ID>) |
+
+# TODOs
+
+- Responsive layout for better viewing on mobile devices
+- Custom web player based on HTML5
+- Services to subscribe
+- Management interface for admins
+- Additional roles like proof listeners, editors, podcasters etc.
+- Wiki for podcast and podcast topics.
+  - Wiki can change content based on podcast episode
+- Support for filtering in podcast view
+  - specials, etc
+
+# Attributions
+
+## Images
+
+<a href="https://www.vecteezy.com/free-png/default-avatar">Default Avatar PNGs by Vecteezy</a>
+
+<a href="https://www.flaticon.com/free-icons/audio" title="audio icons">Audio icons created by Freepik - Flaticon</a>

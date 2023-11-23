@@ -6,7 +6,9 @@ import de.gameofpods.podcastproject.data.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class LanguageManager {
 
@@ -17,10 +19,10 @@ public class LanguageManager {
     public static Locale getUserLocale(User user) {
         if (user != null) {
             // TODO: Get language from user object
-            CookieManager.setCookieValue(COOKIE_KEY, Locale.UK.toLanguageTag());
+            CookieManager.setCookieValue(COOKIE_KEY, Locale.UK.toLanguageTag(), CookieManager.NECESSETY.FUNCTIONAL);
             return Locale.UK;
         }
-        var cookie_lang = CookieManager.getCookieValue(COOKIE_KEY, VaadinService.getCurrentRequest().getLocale().toLanguageTag(), true);
+        var cookie_lang = CookieManager.getCookieValue(COOKIE_KEY, VaadinService.getCurrentRequest().getLocale().toLanguageTag());
         return Locale.forLanguageTag(cookie_lang);
     }
 
@@ -28,7 +30,7 @@ public class LanguageManager {
         if (user != null){
             // TODO: Set language in user object
         }
-        CookieManager.setCookieValue(COOKIE_KEY, locale.toLanguageTag());
+        CookieManager.setCookieValue(COOKIE_KEY, locale.toLanguageTag(), CookieManager.NECESSETY.FUNCTIONAL);
     }
 
     public static List<Locale> languages() {

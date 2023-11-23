@@ -9,19 +9,23 @@ import static net.andreinc.aleph.AlephFormatter.str;
 
 public class CookieManager {
 
+    public static String getCookieValue(String key, String def) {
+        return getCookieValue(key, def, null);
+    }
+
     private static final Logger LOGGER = LogManager.getLogger(CookieManager.class);
 
-    public static String getCookieValue(String key, String def, boolean createIfNotExist){
+    public static String getCookieValue(String key, String def, NECESSETY necessety) {
         var cookie = getCookieByName(key);
         if (cookie != null){
             return cookie.getValue();
         }
-        if (def != null && createIfNotExist)
-            setCookieValue(key, def);
+        if (def != null && necessety != null)
+            setCookieValue(key, def, necessety);
         return def;
     }
 
-    public static void setCookieValue(String key, String value, String path){
+    public static void setCookieValue(String key, String value, String path, NECESSETY necessety) {
         LOGGER.info(str("Setting cookie #{key} to #{value} @ #{path}")
                 .args("key", key).arg("value", value).arg("path", path).fmt()
         );
@@ -30,8 +34,13 @@ public class CookieManager {
         VaadinService.getCurrentResponse().addCookie(myCookie);
     }
 
-    public static void setCookieValue(String key, String value){
-        CookieManager.setCookieValue(key, value, VaadinService.getCurrentRequest().getContextPath());
+    public static void setCookieValue(String key, String value, NECESSETY necessety) {
+        CookieManager.setCookieValue(key, value, VaadinService.getCurrentRequest().getContextPath(), necessety);
+    }
+
+    public enum NECESSETY {
+        FUNCTIONAL,
+        OPTIONAL,
     }
 
     private static Cookie getCookieByName(String name) {
