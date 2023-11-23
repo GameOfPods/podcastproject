@@ -4,7 +4,10 @@ import org.json.JSONObject;
 
 import java.util.Objects;
 
-public class Client {
+public abstract class Client {
+
+    // TODO: Implement clients. Maybe use annotators?
+
     private final String id;
     private final String service;
 

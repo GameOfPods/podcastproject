@@ -36,15 +36,7 @@ public class Podcast implements Comparable<Podcast> {
                 if (pc.containsKey("clients")) {
                     var clientsConfig = (Map<String, Object>) pc.get("clients");
                     for (String clientKey : clientsConfig.keySet()) {
-                        try {
-                            var t = (Map<String, Object>) clientsConfig.get(clientKey);
-                            if (t.containsKey("service")) {
-                                tempPod.addClient(new Client(clientKey, t.get("service").toString()));
-                            } else {
-                                tempPod.addClient(new Client(clientKey));
-                            }
-                        } catch (Exception ignored) {
-                        }
+                        // TODO: Iterate clients and find matching class
                     }
                 }
                 LOGGER.info("Found new Podcast " + tempPod);
