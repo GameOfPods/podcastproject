@@ -23,12 +23,8 @@ public class PodcastCard extends Div {
 
         Span name = new Span(podcast.getTitle());
 
-        String lang = podcast.getLanguage();
-        Locale lang_locale = Locale.of(lang);
-        if (lang_locale != null)
-            lang = lang_locale.getDisplayName(locale);
-
-        Span language = new Span(lang);
+        Locale lang = podcast.getLanguage();
+        Span language = new Span(lang.getDisplayName(locale));
         language.getStyle()
                 .set("color", "var(--lumo-secondary-text-color)")
                 .set("font-size", "var(--lumo-font-size-s)");

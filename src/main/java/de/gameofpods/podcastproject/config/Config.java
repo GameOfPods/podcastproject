@@ -1,8 +1,10 @@
 package de.gameofpods.podcastproject.config;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -30,13 +32,20 @@ public class Config {
         LOGGER.info("Config directory set to \"" + configPath.getAbsolutePath() + "\"");
 
         try {
-            for (File configFile : Objects.requireNonNull(configPath.listFiles(pathname -> pathname.isFile() && pathname.canRead() && pathname.getName().endsWith(".json")))) {
-                var configFileKey = configFile.getName().substring(0, configFile.getName().length() - 5);
+            for (File configFile : Objects.requireNonNull(configPath.listFiles(pathname -> pathname.isFile() && pathname.canRead()))) {
+                // var configFileKey = configFile.getName().substring(0, configFile.getName().length() - 5);
+                var configFileKey = configFile.getName().substring(0, configFile.getName().lastIndexOf('.'));
                 LOGGER.info("Reading config \"" + configFile.getAbsolutePath() + "\" as \"" + configFileKey + "\"");
                 if (CONFIGS.containsKey(configFileKey))
                     throw new RuntimeException("Config with name \"" + configFileKey + "\" already loaded");
                 try {
-                    CONFIGS.put(configFileKey, new Config(new JSONObject(Files.readString(configFile.toPath()))));
+                    var configText = Files.readString(configFile.toPath());
+                    try {
+                        CONFIGS.put(configFileKey, new Config(new JSONObject(configText)));
+                    } catch (JSONException e) {
+                        Map<String, Object> c = (new Yaml()).load(configText);
+                        CONFIGS.put(configFileKey, new Config(c));
+                    }
                 } catch (Exception e) {
                     throw new RuntimeException("Failed to create config from \"" + configFile.getAbsolutePath() + "\"", e);
                 }
@@ -60,7 +69,11 @@ public class Config {
     private final Map<String, Object> data;
 
     private Config(JSONObject configData) {
-        data = configData.toMap();
+        this(configData.toMap());
+    }
+
+    private Config(Map<String, Object> data) {
+        this.data = data;
     }
 
     public static Config getConfig(String key) {

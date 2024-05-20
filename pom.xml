@@ -102,16 +102,42 @@
 
         <!-- https://mvnrepository.com/artifact/com.rometools/rome -->
         <dependency>
-            <groupId>com.rometools</groupId>
-            <artifactId>rome</artifactId>
-            <version>2.1.0</version>
+            <groupId>dev.stalla</groupId>
+            <artifactId>stalla</artifactId>
+            <version>1.0.0</version>
         </dependency>
 
         <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
-            <version>20230618</version>
+            <version>20231013</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.appreciated</groupId>
+            <artifactId>vaadin-paper-menu-button</artifactId>
+            <version>2.0.2</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.commonmark</groupId>
+            <artifactId>commonmark</artifactId>
+            <version>0.21.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+        </dependency>
+
     </dependencies>
 
     <build>

@@ -1,19 +1,32 @@
 package de.gameofpods.podcastproject.views.podcast.episode;
 
+import com.vaadin.flow.component.Html;
+import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.dependency.Uses;
 import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.H2;
+import com.vaadin.flow.component.html.Image;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
+import com.vaadin.flow.component.orderedlayout.FlexLayout;
+import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
+import com.vaadin.flow.component.orderedlayout.Scroller;
+import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.BeforeEnterEvent;
 import com.vaadin.flow.router.BeforeEnterObserver;
 import com.vaadin.flow.router.HasDynamicTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.server.StreamResource;
+import com.vaadin.flow.server.auth.AccessAnnotationChecker;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
-import de.gameofpods.podcastproject.components.audioplayer.AudioPlayer;
+import com.vaadin.flow.theme.lumo.LumoUtility;
+import de.gameofpods.podcastproject.components.Shikwasa;
 import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.data.podcasts.Podcast;
 import de.gameofpods.podcastproject.i18n.LanguageManager;
 import de.gameofpods.podcastproject.security.AuthenticatedUser;
 import de.gameofpods.podcastproject.views.MainLayout;
+import de.gameofpods.podcastproject.views.MainLayoutPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,13 +37,14 @@ import java.util.Optional;
 @Route(value = "podcast/episode/:podcastID/:episodeID", layout = MainLayout.class)
 @AnonymousAllowed
 @Uses(Icon.class)
-public class PodcastEpisodeView extends Div implements BeforeEnterObserver, HasDynamicTitle {
+public class PodcastEpisodeView extends MainLayoutPage implements BeforeEnterObserver, HasDynamicTitle {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PodcastEpisodeView.class);
     private final AuthenticatedUser authenticatedUser;
-    private String title = "Episode";
+    private String title = "Podcast Episode";
 
-    public PodcastEpisodeView(AuthenticatedUser authenticatedUser) {
+    public PodcastEpisodeView(AuthenticatedUser authenticatedUser, AccessAnnotationChecker checker) {
+        super(authenticatedUser, checker);
         this.authenticatedUser = authenticatedUser;
         Optional<User> maybeUser = authenticatedUser.get();
         Locale userLocale = LanguageManager.getUserLocale(maybeUser.orElse(null));
@@ -48,9 +62,79 @@ public class PodcastEpisodeView extends Div implements BeforeEnterObserver, HasD
             throw new RuntimeException("");
         this.title = selectedEpisode.get().getTitle() + " - " + selectedPodcast.getTitle();
 
-        //add(new Span(this.title), new PodlovePlayer(selectedEpisode.get()), new Span("Test"));
+        HorizontalLayout mainLayout = new HorizontalLayout();
+        //mainLayout.setSizeFull();
+        mainLayout.setWidth(100, Unit.PERCENTAGE);
 
-        add(new AudioPlayer(selectedEpisode.get()));
+        VerticalLayout leftLayout = new VerticalLayout();
+        leftLayout.addClassName(LumoUtility.Padding.NONE);
+
+        leftLayout.add(new H2(selectedEpisode.get().getTitle()));
+
+        Image cover;
+        if (selectedEpisode.get().getImageSafe() == null || selectedEpisode.get().getImageSafe().isEmpty()) {
+            cover = new Image(
+                    new StreamResource("", () -> ClassLoader.getSystemResourceAsStream("images/headphones.png")),
+                    "Episode cover - " + selectedEpisode.get().getTitle()
+            );
+        } else {
+            cover = new Image(
+                    selectedEpisode.get().getImageSafe(),
+                    "Episode cover - " + selectedEpisode.get().getTitle()
+            );
+        }
+        cover.setWidth(100, Unit.PERCENTAGE);
+        leftLayout.add(cover);
+
+        FlexLayout badges = new FlexLayout();
+        badges.addClassName(LumoUtility.Gap.SMALL);
+        if (selectedPodcast.getAuthor() != null && !selectedPodcast.getAuthor().isEmpty()) {
+            Span authorBadge = new Span();
+            authorBadge.getElement().getThemeList().add("badge");
+            authorBadge.setText(selectedPodcast.getAuthor());
+            badges.add(authorBadge);
+        }
+        if (!selectedEpisode.get().getDuration().isNegative()) {
+            Span durationBadge = new Span();
+            durationBadge.getElement().getThemeList().add("badge");
+            durationBadge.setText(selectedEpisode.get().getDurationString());
+            badges.add(durationBadge);
+        }
+        leftLayout.add(badges);
+
+        var leftScroller = new Scroller(leftLayout);
+        leftScroller.setSizeFull();
+        leftScroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        leftLayout.setWidth(400, Unit.PIXELS);
+        mainLayout.add(leftLayout);
+
+        VerticalLayout rightLayout = new VerticalLayout();
+
+        Div description = new Div();
+        description.setSizeFull();
+        description.getStyle().set("text-wrap", "wrap");
+        description.add(new Html("<text>" + selectedEpisode.get().getDescription() + "</text>"));
+        rightLayout.add(description);
+
+        var rightScroller = new Scroller(rightLayout);
+        rightScroller.setSizeFull();
+        rightScroller.setScrollDirection(Scroller.ScrollDirection.VERTICAL);
+        mainLayout.add(rightLayout);
+        mainLayout.setFlexGrow(0, leftLayout);
+        mainLayout.setFlexGrow(1, rightLayout);
+
+        var player = new Shikwasa(selectedEpisode.get());
+        player.setWidth(100, Unit.PERCENTAGE);
+//        player.getStyle().setPosition(Style.Position.FIXED);
+//        player.getStyle().setBottom("0");
+
+        VerticalLayout bigLayout = new VerticalLayout(mainLayout, player);
+        bigLayout.setSizeFull();
+        bigLayout.setFlexGrow(1, mainLayout);
+        bigLayout.setFlexGrow(0, player);
+        bigLayout.addClassName(LumoUtility.Gap.MEDIUM);
+
+        setContent(bigLayout);
 
     }
 

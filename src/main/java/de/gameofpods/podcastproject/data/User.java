@@ -3,7 +3,9 @@ package de.gameofpods.podcastproject.data;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 
+import java.util.Arrays;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(
@@ -47,6 +49,10 @@ public class User extends AbstractEntity {
     }
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public void setRoles(Role... roles) {
+        this.setRoles(Arrays.stream(roles).collect(Collectors.toSet()));
     }
     public byte[] getProfilePicture() {
         return profilePicture;

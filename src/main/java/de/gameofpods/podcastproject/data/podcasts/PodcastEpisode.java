@@ -1,21 +1,13 @@
 package de.gameofpods.podcastproject.data.podcasts;
 
-import com.rometools.rome.feed.synd.SyndEntry;
-import com.vaadin.flow.router.RouteConfiguration;
-import com.vaadin.flow.router.RouteParam;
-import com.vaadin.flow.router.RouteParameters;
-import de.gameofpods.podcastproject.podlove.PodlovePlayer;
-import de.gameofpods.podcastproject.views.podcast.episode.PodcastEpisodeView;
+import dev.stalla.model.Episode;
 import net.andreinc.aleph.AlephFormatter;
-import org.jdom2.Element;
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -26,43 +18,62 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
     private final static Supplier<AlephFormatter> DURATION_FMT = () -> str("#{d.toHours}:#{d.toMinutesPart}:#{d.toSecondsPart}");
 
     private final Podcast podcast;
-    private final String title, description, descriptionType;
-    private final Date publishDate, updateDate;
-    private final List<AudioEnclosure> audios;
+    private final String title, description;
+    private final long publishDate;
+    private final AudioEnclosure audio;
     private boolean explicit = false;
-    private String episodeType = "full", season = "0", episode = "0", image = null;
-    private long duration = -1;
+    private String episodeType = "full", episode = "0", image = null;
+    private Duration duration = Duration.of(-1, ChronoUnit.SECONDS);
+    private int season = 0;
 
 
-    private PodcastEpisode(Podcast podcast, SyndEntry entry) {
+    private PodcastEpisode(Podcast podcast, Episode entry) {
         this.podcast = podcast;
         this.episode = null;
         this.title = entry.getTitle();
-        this.description = entry.getDescription().getValue();
-        this.descriptionType = entry.getDescription().getType() == null ? "text/plain" : entry.getDescription().getType();
-        this.publishDate = entry.getPublishedDate();
-        this.updateDate = entry.getUpdatedDate();
-        this.audios = entry.getEnclosures().stream()
-                .filter(en -> en.getType().startsWith("audio"))
-                .map(en -> new AudioEnclosure(en.getUrl(), en.getLength(), en.getType()))
-                .toList();
-        for (Element element : entry.getForeignMarkup()) {
-            try {
-                switch (element.getQualifiedName()) {
-                    case "itunes:explicit" -> explicit = element.getContent(0).getValue().equalsIgnoreCase("yes");
-                    case "itunes:episodeType" -> episodeType = element.getContent(0).getValue();
-                    case "itunes:season" -> season = element.getContent(0).getValue();
-                    case "itunes:image" -> image = element.getAttributeValue("href", (String) null);
-                    case "itunes:duration" -> duration = parseDuration(element.getContent(0).getValue());
-                    case null, default -> {
-                    }
-                }
-            } catch (IndexOutOfBoundsException ignored) {
-            }
+        this.description = entry.getDescription();
+        this.audio = new AudioEnclosure(entry.getEnclosure().getUrl(), entry.getEnclosure().getLength(), entry.getEnclosure().getType().toString());
+        {
+            var t = Objects.requireNonNullElse(entry.getPubDate(), LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC));
+            this.publishDate = t.getLong(ChronoField.INSTANT_SECONDS);
         }
+        try {
+            var o = Objects.requireNonNull(entry.getItunes());
+            explicit = o.getExplicit();
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(entry.getItunes());
+            episodeType = o.getEpisodeType().getType();
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(entry.getItunes());
+            season = o.getSeason();
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(entry.getItunes());
+            try {
+                var oo = Objects.requireNonNull(o.getImage());
+                image = oo.getHref();
+            } catch (NullPointerException ignored) {
+            }
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(entry.getItunes());
+            try {
+                var oo = Objects.requireNonNull(o.getDuration());
+                duration = oo.getRawDuration();
+            } catch (NullPointerException ignored) {
+            }
+        } catch (NullPointerException ignored) {
+        }
+
     }
 
-    public static PodcastEpisode createEpisode(Podcast podcast, SyndEntry entry) {
+    public static PodcastEpisode createEpisode(Podcast podcast, Episode entry) {
         return new PodcastEpisode(podcast, entry);
     }
 
@@ -88,7 +99,7 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
 
     @Override
     public int compareTo(PodcastEpisode o) {
-        int r = this.getPublishDate().compareTo(o.getPublishDate());
+        int r = (int) (this.getPublishDate() - o.getPublishDate());
         if (r == 0)
             r = this.getTitle().compareTo(o.getTitle());
         if (r == 0)
@@ -108,36 +119,21 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
         return description;
     }
 
-    public String getDescriptionType() {
-        return descriptionType;
-    }
-
-    public Date getPublishDate() {
+    public long getPublishDate() {
         return publishDate;
     }
 
-    public Date getUpdateDate() {
-        return updateDate;
+    public AudioEnclosure getAudio() {
+        return this.audio;
     }
 
-    public Date getNewestDate() {
-        var d = this.getPublishDate();
-        if (this.getUpdateDate() != null && d.compareTo(this.getUpdateDate()) < 0)
-            d = this.getUpdateDate();
-        return d;
-    }
-
-    public List<AudioEnclosure> getAudios() {
-        return new ArrayList<>(audios);
-    }
-
-    public long getDuration() {
+    public Duration getDuration() {
         return duration;
     }
 
     public String getDurationString() {
-        if (this.getDuration() > 0) {
-            return DURATION_FMT.get().arg("d", Duration.of(this.getDuration(), ChronoUnit.SECONDS)).fmt();
+        if (!this.getDuration().isNegative()) {
+            return DURATION_FMT.get().arg("d", this.getDuration()).fmt();
         }
         return "";
     }
@@ -154,7 +150,7 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
         return episode;
     }
 
-    public String getSeason() {
+    public int getSeason() {
         return season;
     }
 
@@ -168,49 +164,6 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
 
     public Podcast getPodcast() {
         return podcast;
-    }
-
-    public JSONObject playerConfig() {
-        var ret = new JSONObject();
-        ret.put("version", PodlovePlayer.VERSION);
-
-        ret.put("show", this.getPodcast().playerConfig());
-
-        ret.put("title", this.getTitle());
-        ret.put("summary", this.getDescription());
-        ret.put("publicationDate", this.getPublishDate());
-        ret.put("link",
-                RouteConfiguration.forSessionScope().getUrl(
-                        PodcastEpisodeView.class,
-                        new RouteParameters(new RouteParam("podcastID", podcast.getPermanentID()), new RouteParam("episodeID", this.getPermanentID()))
-                )
-        );
-
-        if (this.getDuration() > 0)
-            ret.put("duration", this.getDurationString());
-        if (this.getSeason() != null || this.getEpisode() != null)
-            ret.put("subtitle", (this.getSeason() != null ? "Season: " + this.getSeason() : "") + " " + (this.getEpisode() != null ? "Episode: " + this.getEpisode() : ""));
-        if (this.getImage() != null)
-            ret.put("poster", this.getImage());
-
-        var audio = new JSONArray();
-        var downloadFiles = new JSONArray();
-        for (AudioEnclosure audioEnclosure : this.getAudios()) {
-            var audioElement = new JSONObject();
-            audioElement.put("url", audioEnclosure.url);
-            audioElement.put("size", audioEnclosure.getLength());
-            audioElement.put("mimeType", audioEnclosure.getType());
-            audio.put(audioElement);
-            downloadFiles.put(audioElement);
-        }
-        ret.put("audio", audio);
-        ret.put("files", downloadFiles);
-
-        var contributors = new JSONArray();
-
-        ret.put("contributors", contributors);
-
-        return ret;
     }
 
     public static class AudioEnclosure {

@@ -1,14 +1,10 @@
 package de.gameofpods.podcastproject.data.podcasts;
 
-import com.rometools.rome.feed.synd.SyndFeed;
-import com.rometools.rome.io.FeedException;
-import com.rometools.rome.io.SyndFeedInput;
-import com.rometools.rome.io.XmlReader;
-import com.vaadin.flow.router.RouteConfiguration;
 import de.gameofpods.podcastproject.config.Config;
-import org.json.JSONObject;
+import dev.stalla.PodcastRssParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xml.sax.SAXException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -37,6 +33,14 @@ public class Podcast implements Comparable<Podcast> {
                     var clientsConfig = (Map<String, Object>) pc.get("clients");
                     for (String clientKey : clientsConfig.keySet()) {
                         // TODO: Iterate clients and find matching class
+                        try {
+                            tempPod.addClient(Client.getClientInstance(
+                                    clientKey,
+                                    (Map<String, String>) clientsConfig.get(clientKey),
+                                    tempPod
+                            ));
+                        } catch (ClassCastException ignored) {
+                        }
                     }
                 }
                 LOGGER.info("Found new Podcast " + tempPod);
@@ -59,7 +63,7 @@ public class Podcast implements Comparable<Podcast> {
     private final String permanentID;
     private final HashSet<Client> clients = new HashSet<>();
     private List<PodcastEpisode> episodeList = null;
-    private SyndFeed feed = null;
+    private dev.stalla.model.Podcast feed = null;
 
     private Podcast(int idx, URL rssFeed, String permanentID) throws MalformedURLException {
         this.idx = idx;
@@ -94,14 +98,13 @@ public class Podcast implements Comparable<Podcast> {
     }
 
     public void refreshList() throws PodcastLoadException {
-        this.episodeList = this.getFeed().getEntries().parallelStream().map(e -> PodcastEpisode.createEpisode(this, e)).sorted(Comparator.reverseOrder()).toList();
+        this.episodeList = this.getFeed().getEpisodes().parallelStream().map(e -> PodcastEpisode.createEpisode(this, e)).sorted(Comparator.reverseOrder()).toList();
     }
 
     public void refreshFeed() throws PodcastLoadException {
-        SyndFeedInput input = new SyndFeedInput();
         try {
-            this.feed = input.build(new XmlReader(this.rssFeed.openConnection(Proxy.NO_PROXY).getInputStream()));
-        } catch (FeedException | IOException e) {
+            this.feed = PodcastRssParser.parse(this.rssFeed.openConnection(Proxy.NO_PROXY).getInputStream());
+        } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
         }
     }
@@ -110,7 +113,7 @@ public class Podcast implements Comparable<Podcast> {
         return permanentID;
     }
 
-    private SyndFeed getFeed() {
+    private dev.stalla.model.Podcast getFeed() {
         if (this.feed == null)
             this.refreshFeed();
         return this.feed;
@@ -120,43 +123,79 @@ public class Podcast implements Comparable<Podcast> {
         return this.getFeed().getTitle();
     }
 
+    public String getAuthor() {
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getItunes());
+            return o.getAuthor();
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getGoogleplay());
+            return o.getAuthor();
+        } catch (NullPointerException ignored) {
+        }
+        return null;
+    }
+
     public String getDescription() {
         return this.getFeed().getDescription();
     }
 
-    public String getLanguage() {
+    public String getSubtitle() {
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getItunes());
+            return o.getSubtitle();
+        } catch (NullPointerException ignored) {
+        }
+        return "";
+    }
+
+    public Locale getLanguage() {
         return this.getFeed().getLanguage();
     }
 
     public String getImage() {
-        var r = this.getFeed().getImage();
-        if (r == null)
-            r = this.getFeed().getIcon();
-        if (r == null)
-            return null;
-        return r.getUrl();
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getImage());
+            return o.getUrl();
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getItunes());
+            try {
+                var oo = Objects.requireNonNull(o.getImage());
+                return oo.getHref();
+            } catch (NullPointerException ignored) {
+            }
+        } catch (NullPointerException ignored) {
+        }
+        try {
+            var o = Objects.requireNonNull(this.getFeed().getGoogleplay());
+            try {
+                var oo = Objects.requireNonNull(o.getImage());
+                return oo.getHref();
+            } catch (NullPointerException ignored) {
+            }
+        } catch (NullPointerException ignored) {
+        }
+        return null;
     }
 
     public String getRssFeed() {
         return rssFeed.getPath();
     }
 
+    public String getRssURL() {
+        return this.rssFeed.getProtocol() + "://" + this.rssFeed.getHost() + (this.rssFeed.getPort() > 0 ? ":" + this.rssFeed.getPort() : "") + this.rssFeed.getPath();
+    }
+
     public Iterator<Client> iterateClients() {
-        return clients.stream().iterator();
+        return clients.stream().sorted().iterator();
     }
 
     public void addClient(Client client) {
-        this.clients.add(client);
-    }
-
-    public JSONObject playerConfig() {
-        var show = new JSONObject();
-        show.put("title", this.getTitle());
-        show.put("summary", this.getDescription());
-        show.put("poster", this.getImage());
-        var route = RouteConfiguration.forSessionScope().getRoute("/");
-        route.ifPresent(rClass -> show.put("link", RouteConfiguration.forSessionScope().getUrl(rClass)));
-        return show;
+        if (client != null)
+            this.clients.add(client);
     }
 
     @Override

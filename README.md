@@ -30,8 +30,11 @@ This application uses environment variables for basic settings.
 
 ## Settings files
 
-The application loads all `.json`-files in the provided settings folder as settings, where the name is used as the key,
+The application loads all `.json` and `.yml` files in the provided settings folder as settings, where the name is used
+as the key,
 if you want to access a custom settings-file while modifying or extending the application.
+
+Following are some configurations that the system expects or can use. All of them can be given as `.json` or `.yml`
 
 ### Expected configurations
 
@@ -53,8 +56,9 @@ if you want to access a custom settings-file while modifying or extending the ap
       "key-for-service-1": {
         "key": "value (See below)"
       },
-      "key-for-service-2": {
-      }
+      "rss": {},
+      "spotify": {"id": "spotify-id"},
+      "patreon": {"name": "patreon name"},
     }
   }
 }
@@ -65,16 +69,39 @@ if you want to access a custom settings-file while modifying or extending the ap
 following are the available services you can set so your podcast can be followed with their respective data you
 have to provide for the element to work
 
-| Service | Key | Default | Required | Description                                                     |
-|---------|-----|---------|----------|-----------------------------------------------------------------|
-| spotify | id  |         | yes      | ID of your spotify podcast (https://open.spotify.com/show/<ID>) |
+| Service | Key  | Default | Required | Description                                                     |
+|---------|------|---------|----------|-----------------------------------------------------------------|
+| spotify | id   |         | yes      | ID of your spotify podcast (https://open.spotify.com/show/<ID>) |
+| patreon | name |         | yes      | Name of your Patreon campain                                    |
+| rss     | NONE |         |          | None needed. Just uses the provided rss feed                    |
+
+### Known optional configurations
+
+`imprints.yml`
+
+Give the imprints for different languages as markdown texts
+
+``` yml
+en: # Imprint
+de: # Impressum 
+```
+
+`cookies.yml`
+
+Give the imprints for different languages as markdown texts
+
+``` yml
+en: |
+ ## Explanations
+ Some additional content you want to show on the cookies page
+```
 
 # TODOs
 
 - Responsive layout for better viewing on mobile devices
-- Custom web player based on HTML5
 - Services to subscribe
 - Management interface for admins
+  - Move settings from files to db
 - Additional roles like proof listeners, editors, podcasters etc.
 - Wiki for podcast and podcast topics.
   - Wiki can change content based on podcast episode

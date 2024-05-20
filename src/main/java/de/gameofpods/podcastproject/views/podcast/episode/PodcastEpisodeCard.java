@@ -6,6 +6,7 @@ import com.vaadin.flow.component.Unit;
 import com.vaadin.flow.component.html.*;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
+import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
 import com.vaadin.flow.router.RouteConfiguration;
@@ -33,6 +34,7 @@ public class PodcastEpisodeCard extends ListItem {
                 Margin.Bottom.MEDIUM, Overflow.HIDDEN, BorderRadius.MEDIUM, Width.FULL);
         // div.setHeight("160px");
         mediaPart.setWidth(300, Unit.PIXELS);
+        mediaPart.setJustifyContentMode(FlexComponent.JustifyContentMode.START);
 
         Image image = new Image();
         image.setWidth("100%");
@@ -44,19 +46,19 @@ public class PodcastEpisodeCard extends ListItem {
         //  new Audio(episode.getAudios().stream().map(PodcastEpisode.AudioEnclosure::getUrl).toList(), episode.getImage(), "off", true)
 
         HorizontalLayout downloadInfos = new HorizontalLayout();
-        if (episode.getDuration() > 0) {
+        if (!episode.getDuration().isNegative()) {
             Span durationBadge = new Span();
             durationBadge.getElement().getThemeList().add("badge");
             durationBadge.setText(episode.getDurationString());
             downloadInfos.add(durationBadge);
         }
-        for (PodcastEpisode.AudioEnclosure audio : episode.getAudios()) {
+        {
             Anchor d = new Anchor();
-            d.setHref(audio.getUrl());
-            Duration d2 = Duration.of(audio.getLength(), ChronoUnit.NANOS);
+            d.setHref(episode.getAudio().getUrl());
+            Duration d2 = Duration.of(episode.getAudio().getLength(), ChronoUnit.NANOS);
             d.add(
                     VaadinIcon.DOWNLOAD.create(),
-                    new Span(audio.getType())
+                    new Span(episode.getAudio().getType())
             );
             // d.addClassName(Padding.LARGE);
             downloadInfos.add(d);
@@ -70,38 +72,33 @@ public class PodcastEpisodeCard extends ListItem {
         Anchor header = new Anchor();
         header.addClassNames(FontSize.XLARGE, FontWeight.SEMIBOLD);
         header.setText(episode.getTitle());
-        header.setHref(RouteConfiguration.forSessionScope().getUrl(
-                PodcastEpisodeView.class, new RouteParameters(new RouteParam("podcastID", podcast.getPermanentID()), new RouteParam("episodeID", episode.getPermanentID()))
-        ));
+        header.setHref(getLink(episode));
 
-        Span subtitle = new Span();
-        subtitle.addClassNames(FontSize.SMALL, TextColor.SECONDARY);
-        subtitle.setText(episode.getSeason() + " - " + episode.getEpisode());
-
-        Component description;
-        switch (episode.getDescriptionType()) {
-            case "text/plain" -> description = new Paragraph(episode.getDescription());
-            case "text/html" -> description = new Html("<text>" + episode.getDescription() + "</text>");
-            case null, default -> {
-                LOGGER.error("Unknown description type: " + episode.getDescription());
-                description = new Paragraph(episode.getDescription());
-            }
-        }
+        Div description = new Div();
+        description.getStyle().set("text-wrap", "wrap");
+        description.add(new Html("<text>" + episode.getDescription() + "</text>"));
 
         description.addClassName(Margin.Vertical.XSMALL);
+//        description.getStyle().setOverflow(Style.Overflow.HIDDEN);
+//        description.getStyle().setWhiteSpace(Style.WhiteSpace.NOWRAP);
+//        description.getStyle().set("text-overflow", "ellipsis");
+
+        //overflow: hidden;
+        //white-space: nowrap; /* Don't forget this one */
+        //text-overflow: ellipsis;
 
         HorizontalLayout badges = new HorizontalLayout();
         if (episode.isExplicit()) {
             Icon icon = VaadinIcon.EXCLAMATION_CIRCLE.create();
-            icon.getStyle().set("padding", "var(--lumo-space-xs");
+            icon.getStyle().set("padding", "var(--lumo-space-xs)");
             Span badge = new Span(icon, new Span("18+"));
             badge.getElement().getThemeList().add("badge error");
             badges.add(badge);
         }
-        if (episode.getSeason() != null && !episode.getSeason().isEmpty()) {
+        if (episode.getSeason() >= 0) {
             Span badge = new Span();
             badge.getElement().getThemeList().add("badge");
-            badge.setText("Season: " + episode.getSeason().strip());
+            badge.setText("Season: " + episode.getSeason());
             badges.add(badge);
         }
 
@@ -124,7 +121,13 @@ public class PodcastEpisodeCard extends ListItem {
 
     }
 
-    public static PodcastEpisodeCard createCard(Podcast podcast, PodcastEpisode episode) {
-        return new PodcastEpisodeCard(podcast, episode);
+    public static String getLink(PodcastEpisode episode) {
+        return RouteConfiguration.forSessionScope().getUrl(
+                PodcastEpisodeView.class, new RouteParameters(new RouteParam("podcastID", episode.getPodcast().getPermanentID()), new RouteParam("episodeID", episode.getPermanentID()))
+        );
+    }
+
+    public static PodcastEpisodeCard createCard(PodcastEpisode episode) {
+        return new PodcastEpisodeCard(episode.getPodcast(), episode);
     }
 }

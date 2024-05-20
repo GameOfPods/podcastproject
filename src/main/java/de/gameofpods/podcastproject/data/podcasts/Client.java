@@ -1,43 +1,83 @@
 package de.gameofpods.podcastproject.data.podcasts;
 
-import org.json.JSONObject;
+import com.vaadin.flow.component.html.Anchor;
+import org.reflections.Reflections;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
-public abstract class Client {
+public abstract class Client implements Comparable<Client> {
 
-    // TODO: Implement clients. Maybe use annotators?
+    private static final Logger LOGGER = LoggerFactory.getLogger(Client.class);
+    private static final Map<String, Class<? extends Client>> clients = new HashMap<>();
 
-    private final String id;
-    private final String service;
-
-    public Client(String id, String service) {
-        this.id = id;
-        this.service = service;
+    static {
+        var reflections = new Reflections();
+        for (Class<? extends Client> aClass : reflections.getSubTypesOf(Client.class)) {
+            var clientKeyAnnotations = aClass.getDeclaredAnnotation(ClientConfigKey.class);
+            if (clientKeyAnnotations != null) {
+                var id = clientKeyAnnotations.id();
+                if (clients.containsKey(id)) {
+                    LOGGER.error("Client with id " + id + " already present");
+                } else {
+                    clients.put(id, aClass);
+                }
+            } else {
+                LOGGER.error("Client " + aClass.getName() + " did have the " + ClientConfigKey.class.getName() + " annotation");
+            }
+        }
+        LOGGER.info("Found " + clients.size() + " different client types");
     }
 
-    public Client(String id) {
-        this(id, null);
+    private final Map<String, String> config = new HashMap<>();
+    private Podcast podcast = null;
+
+    public static Client getClientInstance(String id, Map<String, String> config, Podcast podcast) {
+        if (!clients.containsKey(id))
+            return null;
+        try {
+            var ret = clients.get(id).getDeclaredConstructor().newInstance();
+            ret.setConfig(config, podcast);
+            return ret;
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException |
+                 NoSuchMethodException e) {
+            LOGGER.error("Failed to call default constructor on " + id + "@" + clients.get(id), e);
+            return null;
+        }
     }
 
-    public String getId() {
-        return id;
+    public final String getValue(String key, String def) {
+        return this.config.getOrDefault(key, def);
     }
 
-    public String getService() {
-        return service;
+    public final Podcast getPodcast() {
+        return this.podcast;
     }
 
-    public JSONObject getClientConfig() {
-        var ret = new JSONObject();
-        ret.put("id", this.getId());
-        if (this.getService() != null)
-            ret.put("service", this.getService());
-        return ret;
+    public final void setConfig(Map<String, String> config, Podcast podcast) {
+        this.config.clear();
+        this.config.putAll(config);
+        this.podcast = podcast;
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(this.getId(), this.getService());
+    public int compareTo(Client o) {
+        return this.getClass().getName().compareTo(o.getClass().getName());
     }
+
+    public abstract Anchor render();
+
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target(ElementType.TYPE)
+    public @interface ClientConfigKey {
+        String id();
+    }
+
 }
