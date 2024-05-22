@@ -47,7 +47,7 @@ public class Config {
                         CONFIGS.put(configFileKey, new Config(c));
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException("Failed to create config from \"" + configFile.getAbsolutePath() + "\"", e);
+                    LOGGER.error("Failed to create config from \"{}\"", configFile.getAbsolutePath(), e);
                 }
             }
         } catch (Exception e) {
