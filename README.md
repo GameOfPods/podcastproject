@@ -20,13 +20,15 @@ Eclipse, IntelliJ IDEA, NetBeans, and VS Code).
 
 This application uses environment variables for basic settings.
 
-| Environment Variable   | Default | Required | Description                                                                  |
-|------------------------|---------|----------|------------------------------------------------------------------------------|
-| PORT                   | 8080    | no       | Sets the port the application runs on                                        |
-| PODCAST_PROJECT_CONFIG |         | yes      | Sets the path to the folder containing the [settings files](#settings-files) |
-| DB_URL                 |         | yes      | Sets the jdbc url for the database connection used for user management, etc  |
-| DB_USERNAME            | ""      | no       | Sets the username used for database connection                               |
-| DB_PASSWORD            | ""      | no       | Sets the password used for database connection                               |
+| Environment Variable   | Default | Required                  | Description                                                                                                     |
+|------------------------|---------|---------------------------|-----------------------------------------------------------------------------------------------------------------|
+| PORT                   | 8080    | no                        | Sets the port the application runs on                                                                           |
+| PODCAST_PROJECT_CONFIG |         | yes                       | Sets the path to the folder containing the [settings files](#settings-files)                                    |
+| DB_URL                 |         | yes                       | Sets the jdbc url for the database connection used for user management, etc                                     |
+| DB_USERNAME            | ""      | no                        | Sets the username used for database connection                                                                  |
+| DB_PASSWORD            | ""      | no                        | Sets the password used for database connection                                                                  |
+| DEFAULT_ADMIN          | admin   | no                        | Sets the default admin username                                                                                 |
+| DEFAULT_PASSWORD       |         | yes (on first start only) | Sets the default admin password. Needs to be set when no user is present in database on startup, e.g. first run |
 
 ## Settings files
 
