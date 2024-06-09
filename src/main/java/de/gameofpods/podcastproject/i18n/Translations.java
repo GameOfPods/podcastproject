@@ -6,11 +6,12 @@ import de.gameofpods.podcastproject.utils.SimpleUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+
+import static de.gameofpods.podcastproject.utils.SimpleUtils.getResource;
 
 public class Translations {
     private final static String LANGUAGE_TABLE_SEPARATOR = System.getenv().getOrDefault("LANGUAGE_TABLE_SEPARATOR", "\t");
@@ -21,7 +22,7 @@ public class Translations {
         var t1 = LocalDateTime.now();
         try {
             var baseTranslation = new String(
-                    Objects.requireNonNull(ClassLoader.getSystemResourceAsStream("i18n/translations.csv")).readAllBytes(),
+                    Objects.requireNonNull(getResource("i18n/translations.csv")),
                     StandardCharsets.UTF_8
             );
             var lines = baseTranslation.lines().toList();
@@ -40,7 +41,7 @@ public class Translations {
                     (hm1, hm2) -> hm1.putAll(hm2)
             );
             TRANSLATION_ENTITY_MAP.putAll(t);
-        } catch (IOException | NullPointerException e) {
+        } catch (NullPointerException e) {
             LOGGER.error("base translation file not present or readable in resources at i18n/translations.csv", e);
         }
         var t2 = LocalDateTime.now();

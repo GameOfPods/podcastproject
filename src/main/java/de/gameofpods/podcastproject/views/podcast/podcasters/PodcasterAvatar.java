@@ -7,8 +7,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
+
+import static de.gameofpods.podcastproject.utils.SimpleUtils.getResource;
 
 @WebServlet(urlPatterns = "/avatar", name = "DynamicAvatarServlet")
 @AnonymousAllowed
@@ -19,17 +20,14 @@ public class PodcasterAvatar extends HttpServlet {
         resp.setContentType("image/jpeg");
         String name = req.getParameter("username");
         if (name != null) {
-
+            //TODO: give users some avatar
         }
-        try (InputStream in = getClass().getClassLoader().getResourceAsStream("images/default_user.jpeg"); OutputStream out = resp.getOutputStream()) {
-            if (in == null) {
+        var defaultAvatar = getResource("images/default_user.jpeg");
+        try (OutputStream out = resp.getOutputStream()) {
+            if (defaultAvatar == null) {
                 return;
             }
-            byte[] buf = new byte[1024];
-            int count = 0;
-            while ((count = in.read(buf)) >= 0) {
-                out.write(buf, 0, count);
-            }
+            out.write(defaultAvatar, 0, defaultAvatar.length);
         }
     }
 }

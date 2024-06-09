@@ -3,6 +3,8 @@
 This application should be used for an easy to setup all in one podcast website including additions like
 a wiki, advent calendars, different podcasts (feeds, specials, etc.)
 
+_THIS PROJECT IS CURRENTLY UNDER HEAVY DEVELOPMENT. SO ONLY USE IT WHEN YOU 100% KNOW WHAT YOU ARE DOING_
+
 ## Running the application
 
 The project is a standard Maven project. To run it from the command line,
@@ -109,6 +111,7 @@ en: |
   - Wiki can change content based on podcast episode
 - Support for filtering in podcast view
   - specials, etc
+- Optimize Docker build so not whole source code is included
 
 # Attributions
 

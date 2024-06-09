@@ -155,6 +155,7 @@
     </dependencies>
 
     <build>
+        <finalName>podcastproject</finalName>
         <defaultGoal>spring-boot:run</defaultGoal>
         <plugins>
             <plugin>

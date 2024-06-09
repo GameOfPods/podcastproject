@@ -3,6 +3,8 @@ package de.gameofpods.podcastproject.utils;
 import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.i18n.Translations;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -14,8 +16,30 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class SimpleUtils {
+
+    public static byte[] getResource(String resource) {
+        InputStream input = null;
+        try {
+            input = Translations.class.getResourceAsStream("/resources/" + resource);
+            if (input == null)
+                input = Translations.class.getClassLoader().getResourceAsStream(resource);
+            Objects.requireNonNull(input);
+            return Objects.requireNonNull(input).readAllBytes();
+        } catch (Exception ignored) {
+        } finally {
+            if (input != null)
+                try {
+                    input.close();
+                } catch (IOException ignored) {
+                }
+        }
+        return null;
+    }
+
+
     public static String encodeValueForURL(String value) {
         return URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
