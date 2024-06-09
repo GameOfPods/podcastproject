@@ -5,6 +5,8 @@ a wiki, advent calendars, different podcasts (feeds, specials, etc.)
 
 _THIS PROJECT IS CURRENTLY UNDER HEAVY DEVELOPMENT. SO ONLY USE IT WHEN YOU 100% KNOW WHAT YOU ARE DOING_
 
+See [beta.gameofpods.de](https://beta.gameofpods.de) for an example
+
 ## Running the application
 
 The project is a standard Maven project. To run it from the command line,
