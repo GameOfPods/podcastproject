@@ -6,7 +6,7 @@
     <groupId>de.gameofpods</groupId>
     <artifactId>podcastproject</artifactId>
     <name>podcastproject</name>
-    <version>0.0.1-Pre-Alpha</version>
+    <version>0.0.2-Pre-Alpha</version>
     <packaging>jar</packaging>
 
     <properties>
