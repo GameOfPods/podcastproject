@@ -92,7 +92,7 @@ public class PodcastView extends MainLayoutPage implements BeforeEnterObserver {
         Grid<PodcastEpisode> podcastItems = new Grid<>();
         // TODO: Find better solution
         podcastItems.setAllRowsVisible(true);
-        podcastItems.addComponentColumn(PodcastEpisodeCard::createCard);
+        podcastItems.addComponentColumn(pe -> PodcastEpisodeCard.createCard(pe, maybeUser.orElse(null)));
         podcastItems.setHeight(100, Unit.PERCENTAGE);
         podcastItems.addThemeVariants(GridVariant.LUMO_NO_BORDER, GridVariant.LUMO_NO_ROW_BORDERS);
         podcastItems.setDataProvider(dataProvider);
@@ -108,6 +108,8 @@ public class PodcastView extends MainLayoutPage implements BeforeEnterObserver {
         availablePodcasts.addValueChangeListener((HasValue.ValueChangeListener<AbstractField.ComponentValueChangeEvent<Select<Podcast>, Podcast>>) valueChangeEvent -> {
             // UI.getCurrent().navigate(PodcastView.class, new RouteParam("podcastID", valueChangeEvent.getValue().getPermanentID()));
             var p = valueChangeEvent.getValue();
+            if (p == null)
+                return;
             String route = RouteConfiguration.forSessionScope().getUrl(
                     PodcastView.class, new RouteParameters(new RouteParam("podcastID", p.getPermanentID()))
             );

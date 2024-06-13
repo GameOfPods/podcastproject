@@ -11,9 +11,15 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public class Podcast implements Comparable<Podcast> {
+
+    private static final Timer TIMER = new Timer("PodcastRefreshTimer", true);
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Podcast.class);
 
@@ -104,6 +110,21 @@ public class Podcast implements Comparable<Podcast> {
     public void refreshFeed() throws PodcastLoadException {
         try {
             this.feed = PodcastRssParser.parse(this.rssFeed.openConnection(Proxy.NO_PROXY).getInputStream());
+            LOGGER.info("Got refreshed feed from {}", this.rssFeed);
+            if (this.feed != null) {
+                var ttl = this.feed.getTtl();
+                if (ttl == null)
+                    ttl = 60;
+                TimeUnit time = TimeUnit.MILLISECONDS;
+                TimerTask task = new TimerTask() {
+                    public void run() {
+                        refreshFeed();
+                    }
+                };
+                TIMER.schedule(task, time.convert(ttl, TimeUnit.MINUTES));
+                LOGGER.info("Next feed refresh for {} will be {}",
+                        this.rssFeed, LocalDateTime.now().plus(Duration.of(ttl, ChronoUnit.MINUTES)));
+            }
         } catch (SAXException | IOException e) {
             throw new RuntimeException(e);
         }

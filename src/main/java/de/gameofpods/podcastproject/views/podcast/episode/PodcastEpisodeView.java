@@ -24,12 +24,16 @@ import de.gameofpods.podcastproject.components.Shikwasa;
 import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.data.podcasts.Podcast;
 import de.gameofpods.podcastproject.i18n.LanguageManager;
+import de.gameofpods.podcastproject.i18n.Translations;
 import de.gameofpods.podcastproject.security.AuthenticatedUser;
 import de.gameofpods.podcastproject.views.MainLayout;
 import de.gameofpods.podcastproject.views.MainLayoutPage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -99,6 +103,13 @@ public class PodcastEpisodeView extends MainLayoutPage implements BeforeEnterObs
             durationBadge.getElement().getThemeList().add("badge");
             durationBadge.setText(selectedEpisode.get().getDurationString());
             badges.add(durationBadge);
+        }
+        if (selectedEpisode.get().getPublishDate() > 0) {
+            var t = LocalDateTime.ofEpochSecond(selectedEpisode.get().getPublishDate(), 0, ZoneOffset.UTC);
+            Span badge = new Span();
+            badge.getElement().getThemeList().add("badge");
+            badge.setText(Translations.getTranslation("#publish-date", this.authenticatedUser.get().orElse(null)) + ": " + t.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
+            badges.add(badge);
         }
         leftLayout.add(badges);
 

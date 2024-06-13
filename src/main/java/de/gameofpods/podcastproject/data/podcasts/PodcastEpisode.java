@@ -34,7 +34,7 @@ public class PodcastEpisode implements Comparable<PodcastEpisode> {
         this.description = entry.getDescription();
         this.audio = new AudioEnclosure(entry.getEnclosure().getUrl(), entry.getEnclosure().getLength(), entry.getEnclosure().getType().toString());
         {
-            var t = Objects.requireNonNullElse(entry.getPubDate(), LocalDateTime.ofEpochSecond(0, 0, ZoneOffset.UTC));
+            var t = Objects.requireNonNullElse(entry.getPubDate(), LocalDateTime.ofEpochSecond(-1, 0, ZoneOffset.UTC));
             this.publishDate = t.getLong(ChronoField.INSTANT_SECONDS);
         }
         try {
