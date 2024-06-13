@@ -13,19 +13,24 @@ import com.vaadin.flow.router.RouteConfiguration;
 import com.vaadin.flow.router.RouteParam;
 import com.vaadin.flow.router.RouteParameters;
 import com.vaadin.flow.theme.lumo.LumoUtility.*;
+import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.data.podcasts.Podcast;
 import de.gameofpods.podcastproject.data.podcasts.PodcastEpisode;
+import de.gameofpods.podcastproject.i18n.Translations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 
 public class PodcastEpisodeCard extends ListItem {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(PodcastEpisodeCard.class);
 
-    private PodcastEpisodeCard(Podcast podcast, PodcastEpisode episode) {
+    private PodcastEpisodeCard(Podcast podcast, PodcastEpisode episode, User user) {
         addClassNames(Background.CONTRAST_5, Display.FLEX, FlexDirection.COLUMN, AlignItems.START, Padding.MEDIUM,
                 BorderRadius.LARGE, Margin.MEDIUM);
 
@@ -98,7 +103,14 @@ public class PodcastEpisodeCard extends ListItem {
         if (episode.getSeason() >= 0) {
             Span badge = new Span();
             badge.getElement().getThemeList().add("badge");
-            badge.setText("Season: " + episode.getSeason());
+            badge.setText(Translations.getTranslation("#season", user) + ": " + episode.getSeason());
+            badges.add(badge);
+        }
+        if (episode.getPublishDate() > 0) {
+            var t = LocalDateTime.ofEpochSecond(episode.getPublishDate(), 0, ZoneOffset.UTC);
+            Span badge = new Span();
+            badge.getElement().getThemeList().add("badge");
+            badge.setText(Translations.getTranslation("#publish-date", user) + ": " + t.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
             badges.add(badge);
         }
 
@@ -127,7 +139,7 @@ public class PodcastEpisodeCard extends ListItem {
         );
     }
 
-    public static PodcastEpisodeCard createCard(PodcastEpisode episode) {
-        return new PodcastEpisodeCard(episode.getPodcast(), episode);
+    public static PodcastEpisodeCard createCard(PodcastEpisode episode, User user) {
+        return new PodcastEpisodeCard(episode.getPodcast(), episode, user);
     }
 }
