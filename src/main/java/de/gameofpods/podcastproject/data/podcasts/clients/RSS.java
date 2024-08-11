@@ -16,7 +16,7 @@ public class RSS extends Client {
 
     @Override
     public Anchor render() {
-        var res = getResource("images/badges/RSS/png/social_style_3_rss-512-1.png");
+        var res = getResource("images/badges/rss/png/social_style_3_rss-512-1.png");
         if (res == null)
             res = new byte[0];
         var resFin = res;
