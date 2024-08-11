@@ -20,6 +20,7 @@ import de.gameofpods.podcastproject.data.User;
 import de.gameofpods.podcastproject.i18n.LanguageManager;
 import de.gameofpods.podcastproject.i18n.Translations;
 import de.gameofpods.podcastproject.security.AuthenticatedUser;
+import de.gameofpods.podcastproject.views.about.AboutView;
 import de.gameofpods.podcastproject.views.login.LoginView;
 import de.gameofpods.podcastproject.views.management.ManagementView;
 import de.gameofpods.podcastproject.views.podcast.PodcastView;
@@ -159,6 +160,7 @@ public class MainLayout extends AppLayout {
                 new MenuItemInfo(ac, Translations.getTranslation("#podcast", a), LineAwesomeIcon.HEADPHONES_SOLID.create(), null, PodcastView.class), //
                 // new MenuItemInfo(ac, Translations.getTranslation("#wiki", a), LineAwesomeIcon.INFO_SOLID.create(), null, WikiView.class), //
                 new MenuItemInfo(ac, Translations.getTranslation("#management", a), LineAwesomeIcon.COG_SOLID.create(), null, ManagementView.class), //
+                new MenuItemInfo(ac, Translations.getTranslation("#about", a), LineAwesomeIcon.INFO_CIRCLE_SOLID.create(), null, AboutView.class),
         };
     }
 
