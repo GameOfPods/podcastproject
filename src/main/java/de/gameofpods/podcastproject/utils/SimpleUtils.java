@@ -23,9 +23,9 @@ public class SimpleUtils {
     public static byte[] getResource(String resource) {
         InputStream input = null;
         try {
-            input = Translations.class.getResourceAsStream("/resources/" + resource);
+            input = SimpleUtils.class.getResourceAsStream("/resources/" + resource);
             if (input == null)
-                input = Translations.class.getClassLoader().getResourceAsStream(resource);
+                input = SimpleUtils.class.getClassLoader().getResourceAsStream(resource);
             Objects.requireNonNull(input);
             return Objects.requireNonNull(input).readAllBytes();
         } catch (Exception ignored) {

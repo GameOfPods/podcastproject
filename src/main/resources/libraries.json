@@ -1,0 +1,67 @@
+[
+  {
+    "name": "vaadin",
+    "url": "https://vaadin.com/",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "line-awesome",
+    "url": "https://github.com/parttio/line-awesome",
+    "license": "Apache 2.0"
+  },
+  {
+    "name": "Spring boot",
+    "url": "https://spring.io/projects/spring-boot",
+    "license": "Apache 2.0"
+  },
+  {
+    "name": "postgresql",
+    "url": "https://mvnrepository.com/artifact/org.postgresql/postgresql",
+    "license": "BSD 2-clause"
+  },
+  {
+    "name": "sqlite",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "hibernate",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "aleph",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "stalla",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "json",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "reflections",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "vaadin-paper-menu-button",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "commonmark",
+    "url": "",
+    "license": ""
+  },
+  {
+    "name": "snakeyaml",
+    "url": "",
+    "license": ""
+  }
+]

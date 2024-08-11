@@ -9,6 +9,7 @@ import com.vaadin.flow.component.orderedlayout.FlexLayout;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.function.SerializablePredicate;
 import com.vaadin.flow.router.RouterLink;
+import com.vaadin.flow.server.VaadinResponse;
 import com.vaadin.flow.server.VaadinService;
 import com.vaadin.flow.theme.lumo.LumoUtility;
 import jakarta.servlet.http.Cookie;
@@ -16,10 +17,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.vaadin.lineawesome.LineAwesomeIcon;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static de.gameofpods.podcastproject.utils.SimpleUtils.StringSplit;
@@ -64,7 +64,13 @@ public class CookieManager {
 
     private static Cookie getCookieByName(String name) {
         // Fetch all cookies from the request
-        Cookie[] cookies = VaadinService.getCurrentRequest().getCookies();
+        ArrayList<Cookie> cookies = new ArrayList<>();
+        if (System.getenv("SEARCH_RESPONSE_FOR_COOKIES") != null) {
+            var tmp = getCookiesFromResponse(VaadinService.getCurrentResponse());
+            if (tmp != null)
+                cookies = tmp;
+        }
+        cookies.addAll(Arrays.stream(VaadinService.getCurrentRequest().getCookies()).toList());
 
         // Iterate to find cookie by its name
         for (Cookie cookie : cookies) {
@@ -137,6 +143,49 @@ public class CookieManager {
                 Cookies.COOKIE_CONSENT,
                 String.join(COOKIE_ARRAY_SEPARATOR, allowedCookies.stream().map(Cookies.NECESSETY::toString).collect(Collectors.toSet()))
         );
+    }
+
+    private static ArrayList<Cookie> getCookiesFromResponse(VaadinResponse origResponse) {
+        Object response = origResponse;
+        Object cookieList = null;
+        while (true) {
+            try {
+                var method = response.getClass().getMethod("getCookies");
+                cookieList = method.invoke(response);
+                break;
+            } catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
+                     InvocationTargetException ignore) {
+            }
+            try {
+                cookieList = response.getClass().getField("cookies").get(response);
+                break;
+            } catch (NoSuchFieldException | IllegalAccessException ignored) {
+            }
+            response = traverseResponse(response);
+            if (response == null)
+                break;
+        }
+        if (cookieList != null) {
+            // noinspection unchecked
+            return (ArrayList<Cookie>) cookieList;
+        }
+        return null;
+    }
+
+    private static Object traverseResponse(Object response) {
+        try {
+            var method = response.getClass().getMethod("getResponse");
+            return method.invoke(response);
+        } catch (SecurityException | NoSuchMethodException | IllegalArgumentException | IllegalAccessException |
+                 InvocationTargetException ignore) {
+        }
+        try {
+            Field field = org.springframework.util.ReflectionUtils.findField(response.getClass(), "response");
+            org.springframework.util.ReflectionUtils.makeAccessible(Objects.requireNonNull(field));
+            return field.get(response);
+        } catch (IllegalAccessException | NullPointerException ignored) {
+        }
+        return null;
     }
 
 }

@@ -1,12 +1,15 @@
 package de.gameofpods.podcastproject.config;
 
+import de.gameofpods.podcastproject.utils.SimpleUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -17,6 +20,7 @@ public class Config {
     private final static HashMap<String, Config> CONFIGS = new HashMap<>();
     private final static String ENV_KEY = "PODCAST_PROJECT_CONFIG";
     private final static String[] REQUIRED_CONFIGS = new String[]{"podcasts", "application"};
+    private final static String VERSION = null;
 
     static {
         File configPath;
@@ -63,6 +67,22 @@ public class Config {
             if (!CONFIGS.containsKey(requiredConfig))
                 throw new RuntimeException("Config \"" + requiredConfig + "\" required but was not loaded");
         }
+
+        HashMap<String, Object> propMap = new HashMap<>();
+        try {
+            final Properties properties = new Properties();
+            properties.load(new ByteArrayInputStream(Objects.requireNonNull(SimpleUtils.getResource("project.properties"))));
+            properties.forEach((k, v) -> propMap.put(k.toString(), v));
+        } catch (IOException | NullPointerException ignored) {
+        }
+
+        try {
+            final Properties properties = new Properties();
+            properties.load(new ByteArrayInputStream(Objects.requireNonNull(SimpleUtils.getResource("libraries.properties"))));
+            propMap.put("libraries", Libraries.parseLibraries(properties.getProperty("libraries")));
+        } catch (IOException | NullPointerException ignored) {
+        }
+        CONFIGS.put("pom.properties", new Config(propMap));
 
     }
 

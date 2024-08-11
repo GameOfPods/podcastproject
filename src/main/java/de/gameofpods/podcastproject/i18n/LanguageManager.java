@@ -18,8 +18,6 @@ public class LanguageManager {
     public static Locale getUserLocale(User user) {
         if (user != null) {
             // TODO: Get language from user object
-            CookieManager.setCookieValue(Cookies.LANGUAGE, Locale.UK.toLanguageTag());
-            return Locale.UK;
         }
         var cookie_lang = CookieManager.getCookieValue(Cookies.LANGUAGE, VaadinService.getCurrentRequest().getLocale().toLanguageTag());
         return Locale.forLanguageTag(cookie_lang);
